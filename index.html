@@ -1,0 +1,2083 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EduSpark — Where Learning Meets Fun</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --yellow:  #FFD93D;
+      --orange:  #FF6B35;
+      --teal:    #1ECBE1;
+      --purple:  #7B2FBE;
+      --green:   #06D6A0;
+      --dark:    #0B0E14;
+      --light:   #FFFDF4;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Nunito', sans-serif;
+      background: var(--light);
+      color: var(--dark);
+      overflow-x: hidden;
+      cursor: none;
+    }
+
+    /* ── Custom Cursor — Rocket ── */
+    #cursor {
+      width: 28px; height: 28px;
+      position: fixed; top: 0; left: 0;
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate(-50%, -50%) rotate(-45deg);
+      transition: transform 0.12s ease, filter 0.2s;
+      font-size: 22px;
+      line-height: 1;
+      filter: drop-shadow(0 0 6px rgba(255,107,53,0.8));
+    }
+    #cursor-trail {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: var(--orange);
+      position: fixed; top: 0; left: 0;
+      pointer-events: none;
+      z-index: 9998;
+      transform: translate(-50%, -50%);
+      opacity: 0.5;
+      transition: left 0.08s, top 0.08s;
+    }
+
+    /* ── Kids Mode Toggle ── */
+    #mode-toggle {
+      position: fixed; top: 5.5rem; right: 1.5rem;
+      z-index: 200;
+      display: flex; align-items: center; gap: 6px;
+      background: rgba(0,0,0,0.5);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 50px;
+      padding: 6px 12px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      color: #ccc;
+      cursor: none;
+      backdrop-filter: blur(8px);
+    }
+    #mode-toggle .toggle-knob {
+      width: 36px; height: 18px;
+      background: #444;
+      border-radius: 50px;
+      position: relative;
+      transition: background 0.3s;
+    }
+    #mode-toggle .toggle-knob::after {
+      content: '';
+      width: 14px; height: 14px;
+      background: #fff;
+      border-radius: 50%;
+      position: absolute;
+      top: 2px; left: 2px;
+      transition: left 0.3s;
+    }
+    body.kids-light #mode-toggle .toggle-knob { background: var(--yellow); }
+    body.kids-light #mode-toggle .toggle-knob::after { left: 20px; }
+
+    /* ── Kids Light Mode ── */
+    body.kids-light {
+      background: #FFF9F0;
+    }
+    body.kids-light nav { background: #FF6B35; border-color: #FFD93D; }
+    body.kids-light .hero { background: linear-gradient(135deg, #FFF0D0, #FFE0F0, #D0F0FF); }
+    body.kids-light .hero h1 { color: #1a1208; }
+    body.kids-light .hero p  { color: #444; }
+    body.kids-light .emoji-card { background: rgba(255,107,53,0.1); border-color: rgba(255,107,53,0.3); }
+    body.kids-light .edutainment-section { background: #1a1208; }
+    body.kids-light #liveCanvas { opacity: 0.3; }
+
+    /* ── Background noise / dead space filler ── */
+    .hero-noise {
+      position: absolute; inset: 0;
+      pointer-events: none;
+      z-index: 1;
+      overflow: hidden;
+    }
+    .noise-el {
+      position: absolute;
+      opacity: 0.08;
+      color: #fff;
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.2rem;
+      animation: noiseDrift linear infinite;
+      user-select: none;
+    }
+    @keyframes noiseDrift {
+      0%   { transform: translateY(0) rotate(0deg); }
+      100% { transform: translateY(-30px) rotate(10deg); }
+    }
+
+    /* ── Nav ── */
+    nav {
+      position: fixed; top: 0; width: 100%;
+      z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.2rem 5rem;
+      background: rgba(11,14,20,0.96);
+      backdrop-filter: blur(12px);
+      border-bottom: 3px solid var(--yellow);
+    }
+    .logo {
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.8rem;
+      color: var(--yellow);
+      letter-spacing: 1px;
+    }
+    .logo span { color: var(--teal); }
+    nav ul { list-style: none; display: flex; gap: 2rem; }
+    nav ul a {
+      text-decoration: none;
+      color: #fff;
+      font-weight: 700;
+      font-size: 0.95rem;
+      letter-spacing: 0.5px;
+      transition: color 0.2s;
+    }
+    nav ul a:hover { color: var(--yellow); }
+    .nav-cta {
+      background: var(--orange);
+      color: #fff !important;
+      padding: 0.5rem 1.4rem;
+      border-radius: 50px;
+      transition: background 0.2s !important;
+    }
+    .nav-cta:hover { background: var(--yellow) !important; color: var(--dark) !important; }
+
+    /* ── Hero ── */
+    .hero {
+      min-height: 100vh;
+      background: radial-gradient(ellipse at 40% 50%, #1e293b 0%, #0f172a 50%, #0B0E14 100%);
+      display: flex; align-items: center;
+      padding: 8rem 4rem 4rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-bg-shapes span {
+      position: absolute;
+      border-radius: 50%;
+      opacity: 0.12;
+      animation: float 6s ease-in-out infinite;
+    }
+    .hero-bg-shapes span:nth-child(1) { width:400px; height:400px; background:var(--teal);   top:-100px; right:-80px; animation-delay:0s; }
+    .hero-bg-shapes span:nth-child(2) { width:250px; height:250px; background:var(--yellow); bottom:50px; left:10%;   animation-delay:2s; }
+    .hero-bg-shapes span:nth-child(3) { width:180px; height:180px; background:var(--orange); top:30%;    right:25%;   animation-delay:4s; }
+    @keyframes float {
+      0%,100% { transform: translateY(0) scale(1); }
+      50%      { transform: translateY(-30px) scale(1.05); }
+    }
+
+    .hero-content { max-width: 680px; z-index: 2; }
+    .hero-tag {
+      display: inline-block;
+      background: var(--yellow);
+      color: var(--dark);
+      font-weight: 800;
+      font-size: 0.8rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 0.35rem 1rem;
+      border-radius: 4px;
+      margin-bottom: 1.5rem;
+      animation: fadeUp 0.6s ease both;
+    }
+    .hero h1 {
+      font-family: 'Fredoka One', cursive;
+      font-size: clamp(3rem, 6vw, 5.5rem);
+      color: #fff;
+      line-height: 1.1;
+      animation: fadeUp 0.6s 0.1s ease both;
+    }
+    .hero h1 .accent-orange { color: var(--orange); }
+    .hero h1 .accent-teal   { color: var(--teal); }
+    .hero p {
+      color: #e8e8f0;
+      font-size: 1.22rem;
+      margin: 1.5rem 0 2.5rem;
+      line-height: 1.75;
+      animation: fadeUp 0.6s 0.2s ease both;
+    }
+    .hero-btns {
+      display: flex; gap: 1rem; flex-wrap: wrap;
+      animation: fadeUp 0.6s 0.3s ease both;
+    }
+    .btn {
+      padding: 0.9rem 2.2rem;
+      border-radius: 50px;
+      font-family: 'Nunito', sans-serif;
+      font-weight: 800;
+      font-size: 1rem;
+      border: none;
+      cursor: none;
+      transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out, filter 0.3s;
+      text-decoration: none;
+      display: inline-block;
+      letter-spacing: 0.5px;
+    }
+    .btn:hover { transform: translateY(-4px) scale(1.04); box-shadow: 0 14px 36px rgba(0,0,0,0.35); }
+    .btn-primary {
+      background: linear-gradient(135deg, #FF6B35, #FF2DAA);
+      color: #fff;
+      box-shadow: 0 4px 20px rgba(255,107,53,0.45);
+    }
+    .btn-primary:hover {
+      filter: brightness(1.15);
+      box-shadow: 0 16px 40px rgba(255,45,170,0.5);
+    }
+    .btn-outline  { background: transparent; color: #fff; border: 2px solid rgba(255,255,255,0.7); }
+    .btn-outline:hover { background: rgba(255,255,255,0.1); border-color: #fff; }
+
+    .hero-visual {
+      position: absolute; right: 4rem; top: 50%;
+      transform: translateY(-50%);
+      z-index: 2;
+      animation: fadeUp 0.6s 0.4s ease both;
+    }
+    .emoji-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 90px);
+      gap: 16px;
+    }
+    .emoji-card {
+      width: 90px; height: 90px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 20px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2.4rem;
+      transition: transform 0.3s ease-in-out, background 0.3s ease-in-out, box-shadow 0.3s ease-in-out, filter 0.3s ease-in-out;
+      animation: pop 0.4s ease both;
+      cursor: none;
+    }
+    .emoji-card:hover {
+      transform: scale(1.22) rotate(-6deg) translateY(-4px);
+      background: rgba(255,255,255,0.2);
+      box-shadow: 0 0 28px rgba(255,217,61,0.55), 0 0 8px rgba(30,203,225,0.4);
+      filter: drop-shadow(0 0 10px rgba(255,217,61,0.7));
+      border-color: rgba(255,217,61,0.6);
+    }
+    .emoji-card:nth-child(1)  { animation-delay: 0.5s; }
+    .emoji-card:nth-child(2)  { animation-delay: 0.6s; }
+    .emoji-card:nth-child(3)  { animation-delay: 0.7s; }
+    .emoji-card:nth-child(4)  { animation-delay: 0.8s; }
+    .emoji-card:nth-child(5)  { animation-delay: 0.9s; }
+    .emoji-card:nth-child(6)  { animation-delay: 1.0s; }
+    .emoji-card:nth-child(7)  { animation-delay: 1.1s; }
+    .emoji-card:nth-child(8)  { animation-delay: 1.2s; }
+    .emoji-card:nth-child(9)  { animation-delay: 1.3s; }
+    @keyframes pop {
+      from { opacity:0; transform: scale(0.5); }
+      to   { opacity:1; transform: scale(1); }
+    }
+
+    @keyframes fadeUp {
+      from { opacity:0; transform: translateY(30px); }
+      to   { opacity:1; transform: translateY(0); }
+    }
+
+    /* ── Stats Bar ── */
+    .stats-bar {
+      background: var(--yellow);
+      padding: 1.5rem 4rem;
+      display: flex; justify-content: space-around; align-items: center;
+      flex-wrap: wrap; gap: 1rem;
+    }
+    .stat { text-align: center; }
+    .stat-num {
+      font-family: 'Fredoka One', cursive;
+      font-size: 2rem;
+      color: var(--dark);
+    }
+    .stat-label { font-size: 0.85rem; font-weight: 700; color: #555; }
+
+    /* ── Section shared ── */
+    section { padding: 6rem 4rem; }
+    .section-tag {
+      font-size: 0.75rem;
+      font-weight: 800;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--orange);
+      margin-bottom: 0.75rem;
+    }
+    .section-title {
+      font-family: 'Fredoka One', cursive;
+      font-size: clamp(2rem, 4vw, 3rem);
+      color: var(--dark);
+      margin-bottom: 1rem;
+      line-height: 1.2;
+    }
+    .section-sub {
+      color: #555;
+      font-size: 1.05rem;
+      max-width: 560px;
+      line-height: 1.7;
+      margin-bottom: 3rem;
+    }
+
+    /* ── What is Edutainment ── */
+    .edutainment-section {
+      background: radial-gradient(ellipse at center, #1A1625 0%, #120D1D 100%);
+      color: #fff;
+      position: relative;
+      overflow: hidden;
+    }
+    .edutainment-section::before {
+      content: 'EDUTAINMENT';
+      position: absolute;
+      font-family: 'Fredoka One', cursive;
+      font-size: 12rem;
+      color: rgba(255,255,255,0.03);
+      top: 50%; left: 50%;
+      transform: translate(-50%,-50%);
+      white-space: nowrap;
+      pointer-events: none;
+    }
+    .edutainment-section .section-title { color: var(--yellow); }
+    .edutainment-section .section-tag   { color: var(--teal); }
+    .edutainment-section .section-sub   { color: #bbb; }
+    .edu-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+    .edu-card {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 20px;
+      padding: 2rem;
+      transition: transform 0.3s, border-color 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+    .edu-card::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 4px;
+      border-radius: 0 0 20px 20px;
+    }
+    .edu-card:nth-child(1)::after { background: var(--orange); }
+    .edu-card:nth-child(2)::after { background: var(--teal); }
+    .edu-card:nth-child(3)::after { background: var(--green); }
+    .edu-card:nth-child(4)::after { background: var(--yellow); }
+    .edu-card:hover { transform: translateY(-6px); border-color: rgba(255,255,255,0.25); }
+    .edu-card .icon { font-size: 2.5rem; margin-bottom: 1rem; }
+    .edu-card h3 { font-family: 'Fredoka One', cursive; font-size: 1.4rem; color: #fff; margin-bottom: 0.5rem; }
+    .edu-card p  { color: #aaa; font-size: 0.95rem; line-height: 1.6; }
+
+    /* ── Subjects ── */
+    .subjects-section { background: var(--light); }
+    .subjects-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 1.2rem;
+    }
+    .subject-pill {
+      background: #fff;
+      border: 2px solid var(--dark);
+      border-radius: 16px;
+      padding: 1.4rem 1rem;
+      text-align: center;
+      font-weight: 800;
+      font-size: 0.95rem;
+      transition: all 0.25s;
+      cursor: none;
+      box-shadow: 4px 4px 0 var(--dark);
+    }
+    .subject-pill .s-icon { font-size: 2rem; margin-bottom: 0.5rem; display: block; }
+    .subject-pill:hover {
+      background: var(--yellow);
+      transform: translate(-3px, -3px);
+      box-shadow: 7px 7px 0 var(--dark);
+    }
+
+    /* ── Why Us ── */
+    .why-section {
+      background: linear-gradient(135deg, #fff8e7 0%, #e8f9f9 100%);
+    }
+    .why-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      align-items: center;
+    }
+    .why-list { display: flex; flex-direction: column; gap: 1.2rem; }
+    .why-item {
+      display: flex; align-items: flex-start; gap: 1rem;
+      background: #fff;
+      border-radius: 16px;
+      padding: 1.2rem 1.5rem;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+      transition: transform 0.2s;
+    }
+    .why-item:hover { transform: translateX(6px); }
+    .why-icon {
+      width: 46px; height: 46px; flex-shrink: 0;
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem;
+    }
+    .why-item:nth-child(1) .why-icon { background: #FFD93D33; }
+    .why-item:nth-child(2) .why-icon { background: #1ECBE133; }
+    .why-item:nth-child(3) .why-icon { background: #FF6B3533; }
+    .why-item:nth-child(4) .why-icon { background: #06D6A033; }
+    .why-item h4 { font-weight: 800; margin-bottom: 0.2rem; font-size: 1rem; }
+    .why-item p  { font-size: 0.9rem; color: #666; line-height: 1.5; }
+
+    .why-visual {
+      background: var(--dark);
+      border-radius: 24px;
+      padding: 2.5rem;
+      color: #fff;
+      text-align: center;
+    }
+    .big-quote {
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.6rem;
+      color: var(--yellow);
+      line-height: 1.4;
+      margin-bottom: 1.5rem;
+    }
+    .testimonial-mini {
+      background: rgba(255,255,255,0.07);
+      border-radius: 12px;
+      padding: 1rem 1.2rem;
+      margin-bottom: 0.75rem;
+      text-align: left;
+      font-size: 0.9rem;
+      color: #ccc;
+      line-height: 1.5;
+    }
+    .testimonial-mini strong { color: var(--teal); display: block; margin-top: 0.4rem; font-size: 0.8rem; }
+
+    /* ── Plans ── */
+    .plans-section { background: radial-gradient(ellipse at center, #1A1C1E 0%, #0B0E14 100%); }
+    .plans-section .section-title { color: #fff; }
+    .plans-section .section-tag   { color: var(--green); }
+    .plans-section .section-sub   { color: #bbb; }
+    .plans-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1.5rem;
+    }
+    /* ── Plans Grid ── */
+    .plans-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1.5rem;
+    }
+    .plan-card {
+      background: rgba(255,255,255,0.05);
+      border: 2px solid rgba(255,255,255,0.1);
+      border-radius: 24px;
+      padding: 2rem;
+      transition: transform 0.3s, border-color 0.3s, box-shadow 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+    .plan-card.featured {
+      background: var(--orange);
+      border-color: var(--orange);
+    }
+    .plan-card:hover { transform: translateY(-8px); }
+    .plan-card.card-lit {
+      border-color: var(--orange);
+      box-shadow: 0 0 30px rgba(255,107,53,0.45), 0 0 60px rgba(255,107,53,0.15);
+    }
+    .plan-card .card-glow {
+      position: absolute;
+      width: 200px; height: 200px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,107,53,0.25) 0%, transparent 70%);
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      transition: opacity 0.3s;
+      opacity: 0;
+    }
+    .plan-card.card-lit .card-glow { opacity: 1; }
+    .plan-badge {
+      background: var(--yellow);
+      color: var(--dark);
+      font-size: 0.7rem;
+      font-weight: 800;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 0.25rem 0.75rem;
+      border-radius: 50px;
+      display: inline-block;
+      margin-bottom: 1rem;
+    }
+    .plan-name { font-family: 'Fredoka One', cursive; font-size: 1.5rem; color: #fff; }
+    .plan-price {
+      font-family: 'Fredoka One', cursive;
+      font-size: 2.8rem;
+      color: var(--yellow);
+      margin: 0.5rem 0;
+    }
+    .plan-price span { font-size: 1rem; color: #bbb; font-family: 'Nunito', sans-serif; }
+    .plan-features { list-style: none; margin: 1.5rem 0; }
+    .plan-features li {
+      padding: 0.4rem 0;
+      font-size: 0.9rem;
+      color: #ccc;
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+    .plan-card.featured .plan-features li { color: rgba(255,255,255,0.9); }
+    .plan-features li::before { content: '✓'; color: var(--green); font-weight: 800; }
+    .plan-card.featured .plan-features li::before { color: #fff; }
+
+    /* ── Fee Table ── */
+    .fee-table-wrap {
+      overflow-x: auto;
+      border-radius: 20px;
+      border: 2px solid rgba(255,255,255,0.12);
+    }
+    .fee-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.97rem;
+    }
+    .fee-table thead tr {
+      background: var(--orange);
+    }
+    .fee-table thead th {
+      padding: 1.1rem 1.5rem;
+      text-align: left;
+      font-family: 'Fredoka One', cursive;
+      font-size: 1rem;
+      color: #fff;
+      font-weight: 400;
+      letter-spacing: 0.5px;
+    }
+    .fee-table thead th:last-child { text-align: right; }
+    .fee-table tbody tr {
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+      transition: background 0.2s;
+    }
+    .fee-table tbody tr:last-child { border-bottom: none; }
+    .fee-table tbody tr:hover { background: rgba(255,255,255,0.05); }
+    .fee-table tbody tr.highlight { background: rgba(255,217,61,0.08); }
+    .fee-table td {
+      padding: 1rem 1.5rem;
+      color: #ddd;
+      vertical-align: middle;
+    }
+    .fee-table td:last-child {
+      text-align: right;
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.35rem;
+      color: var(--yellow);
+      white-space: nowrap;
+    }
+    .fee-table .class-badge {
+      display: inline-block;
+      background: rgba(30,203,225,0.15);
+      color: var(--teal);
+      font-size: 0.75rem;
+      font-weight: 800;
+      padding: 0.2rem 0.65rem;
+      border-radius: 50px;
+      margin-left: 0.5rem;
+      vertical-align: middle;
+    }
+    .fee-table .popular-badge {
+      background: rgba(255,107,53,0.2);
+      color: var(--orange);
+    }
+    .fee-note {
+      margin-top: 1.2rem;
+      color: #888;
+      font-size: 0.88rem;
+      display: flex; align-items: center; gap: 0.4rem;
+    }
+
+    /* ── CTA ── */
+    .cta-section {
+      background: var(--orange);
+      text-align: center;
+      padding: 5rem 4rem;
+    }
+    .cta-section h2 {
+      font-family: 'Fredoka One', cursive;
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      color: #fff;
+      margin-bottom: 1rem;
+    }
+    .cta-section p { color: rgba(255,255,255,0.85); font-size: 1.1rem; margin-bottom: 2rem; }
+    .btn-white { background: #fff; color: var(--orange); font-weight: 800; }
+    .btn-white:hover { background: var(--dark); color: #fff; }
+
+    /* ── Footer ── */
+    footer {
+      background: #080A0F;
+      color: #aaa;
+      padding: 3rem 5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+      border-top: 3px solid var(--yellow);
+    }
+    .footer-logo { font-family: 'Fredoka One', cursive; font-size: 1.5rem; color: var(--yellow); }
+    .footer-logo span { color: var(--teal); }
+    footer p { font-size: 0.85rem; }
+    .footer-links { display: flex; gap: 1.5rem; }
+    .footer-links a { color: #aaa; text-decoration: none; font-size: 0.85rem; }
+    .footer-links a:hover { color: var(--yellow); }
+
+    /* ── Responsive ── */
+    /* ══════════════════════════════════════
+       RESPONSIVE — Mobile / Tablet / Laptop / Desktop
+    ══════════════════════════════════════ */
+
+    /* ── Desktop (1280px+) — default styles apply ── */
+
+    /* ── Laptop (1024px – 1279px) ── */
+    @media (max-width: 1279px) {
+      nav { padding: 1rem 3rem; }
+      .hero { padding: 8rem 3rem 4rem; }
+      .hero h1 { font-size: clamp(2.5rem, 5vw, 4.5rem); }
+      section { padding: 5rem 3rem; }
+      footer { padding: 2.5rem 3rem; }
+      #chatBox { width: 300px; }
+    }
+
+    /* ── Tablet (768px – 1023px) ── */
+    @media (max-width: 1023px) {
+      nav { padding: 1rem 2rem; }
+      nav ul { display: none; }
+      .hamburger { display: flex; }
+      .hero { padding: 7rem 2.5rem 4rem; flex-direction: column; min-height: auto; }
+      .hero-content { max-width: 100%; }
+      .hero-visual { position: relative; right: auto; top: auto; transform: none; margin-top: 2.5rem; display: flex; justify-content: center; }
+      .hero h1 { font-size: clamp(2.2rem, 5vw, 3.5rem); }
+      section { padding: 4rem 2.5rem; }
+      .why-grid { grid-template-columns: 1fr; gap: 2rem; }
+      .edu-grid { grid-template-columns: repeat(2, 1fr); }
+      .plans-grid { grid-template-columns: repeat(2, 1fr); }
+      .subjects-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
+      footer { flex-direction: column; text-align: center; padding: 2rem 2.5rem; gap: 1.2rem; }
+      .footer-links { justify-content: center; flex-wrap: wrap; }
+      #chatBox { width: 290px; right: 1rem; }
+      #chatBtn { right: 1rem; bottom: 1rem; }
+      #mode-toggle { top: 4.5rem; right: 1rem; }
+    }
+
+    /* ── Mobile Large (480px – 767px) ── */
+    @media (max-width: 767px) {
+      nav { padding: 0.9rem 1.2rem; }
+      nav ul { display: none; }
+      .hero { padding: 6.5rem 1.2rem 3rem; }
+      .hero h1 { font-size: clamp(1.9rem, 8vw, 2.8rem); line-height: 1.15; }
+      .hero p { font-size: 1rem; line-height: 1.65; }
+      .hero-tag { font-size: 0.7rem; }
+      .hero-btns { flex-direction: column; gap: 0.75rem; }
+      .hero-btns .btn { text-align: center; width: 100%; }
+      .hero-visual { display: none; }
+      section { padding: 3rem 1.2rem; }
+      .section-title { font-size: clamp(1.6rem, 6vw, 2.2rem); }
+      .edu-grid { grid-template-columns: 1fr; }
+      .plans-grid { grid-template-columns: 1fr; }
+      .subjects-grid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 0.8rem; }
+      .subject-pill { padding: 1rem 0.75rem; font-size: 0.85rem; }
+      .subject-pill .s-icon { font-size: 1.6rem; }
+      .why-list { gap: 0.9rem; }
+      .why-item { padding: 1rem 1.1rem; }
+      .plan-card { padding: 1.5rem; }
+      .plan-price { font-size: 2.2rem; }
+      .cta-section { padding: 3.5rem 1.2rem; }
+      .cta-section h2 { font-size: clamp(1.5rem, 6vw, 2.2rem); }
+      footer { padding: 1.8rem 1.2rem; }
+      .footer-links { gap: 1rem; }
+      #chatBox { width: calc(100vw - 2rem); right: 1rem; left: 1rem; bottom: 5.5rem; }
+      #chatBtn { right: 1rem; bottom: 1rem; width: 72px; height: 88px; }
+      #mode-toggle { top: 4.2rem; right: 0.8rem; font-size: 0.65rem; padding: 5px 9px; }
+      .noise-el { display: none; }
+      .stats-bar { padding: 1.2rem 1.2rem; gap: 0.8rem; }
+      .stat-num { font-size: 1.6rem; }
+    }
+
+    /* ── Mobile Small (up to 479px) ── */
+    @media (max-width: 479px) {
+      .hero h1 { font-size: clamp(1.6rem, 9vw, 2.2rem); }
+      .hero p { font-size: 0.95rem; }
+      .btn { padding: 0.75rem 1.4rem; font-size: 0.9rem; }
+      .section-title { font-size: 1.5rem; }
+      .edu-card { padding: 1.5rem; }
+      .emoji-grid { grid-template-columns: repeat(3, 70px); gap: 10px; }
+      .emoji-card { width: 70px; height: 70px; font-size: 1.8rem; border-radius: 14px; }
+      .plan-price { font-size: 1.9rem; }
+      .plan-name { font-size: 1.2rem; }
+      #chatBox { width: calc(100vw - 1.6rem); right: 0.8rem; left: 0.8rem; }
+      #chatBtn { right: 0.8rem; width: 64px; height: 78px; }
+      .contactModal > div { padding: 1.5rem; }
+    }
+
+    /* ── Hamburger menu button (shown on tablet/mobile) ── */
+    .hamburger {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      cursor: pointer;
+      padding: 4px;
+      z-index: 200;
+    }
+    .hamburger span {
+      width: 24px; height: 2.5px;
+      background: #fff;
+      border-radius: 2px;
+      transition: all 0.3s ease;
+      display: block;
+    }
+    .hamburger.open span:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
+    .hamburger.open span:nth-child(2) { opacity: 0; }
+    .hamburger.open span:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
+
+    /* ── Mobile nav drawer ── */
+    .mobile-nav {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(11,14,20,0.97);
+      z-index: 150;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2rem;
+      backdrop-filter: blur(12px);
+    }
+    .mobile-nav.open { display: flex; }
+    .mobile-nav a {
+      font-family: 'Fredoka One', cursive;
+      font-size: 2rem;
+      color: #fff;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .mobile-nav a:hover { color: var(--yellow); }
+    .mobile-nav-close {
+      position: absolute; top: 1.5rem; right: 1.5rem;
+      background: none; border: none; color: #fff;
+      font-size: 2rem; cursor: pointer;
+    }
+
+    /* ── Live Canvas Wallpaper ── */
+    #liveCanvas {
+      position: fixed; top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* ── Floating Emojis ── */
+    .floater {
+      position: fixed;
+      font-size: 2rem;
+      pointer-events: none;
+      z-index: 1;
+      animation: floatUp linear infinite;
+      opacity: 0;
+      user-select: none;
+    }
+    @keyframes floatUp {
+      0%   { transform: translateY(110vh) rotate(0deg); opacity: 0; }
+      10%  { opacity: 0.7; }
+      90%  { opacity: 0.5; }
+      100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; }
+    }
+
+
+
+    /* make sure sections sit above canvas */
+    nav, section, .stats-bar, footer, #contactModal, #chatBtn, #chatBox {
+      position: relative; z-index: 2;
+    }
+
+
+    /* ── Touch devices — restore normal cursor ── */
+    @media (hover: none) and (pointer: coarse) {
+      body { cursor: auto !important; }
+      #cursor, #cursor-trail { display: none !important; }
+      .btn, a, button, .subject-pill, .emoji-card, .plan-card { cursor: pointer !important; }
+      /* Disable hover-only effects on touch */
+      .emoji-card:hover { transform: none; box-shadow: none; filter: none; }
+      .plan-card:hover  { transform: none; }
+      /* Make tap targets bigger */
+      nav ul a, .footer-links a { padding: 0.5rem; }
+      /* Fix hero layout on mobile */
+      .hero { flex-direction: column !important; min-height: 100svh; }
+      .hero-content { max-width: 100% !important; text-align: center; }
+      .hero-btns { justify-content: center; }
+      .hero-visual { display: none !important; }
+      /* Fix plan cards overflow */
+      .plan-card { overflow: hidden; }
+      .plans-grid { grid-template-columns: 1fr !important; }
+      /* Fix sections padding */
+      section { padding: 3rem 1.2rem !important; }
+      /* Fix chatbox */
+      #chatBox { width: calc(100vw - 1.6rem) !important; right: 0.8rem !important; left: 0.8rem !important; }
+      /* Fix modal on mobile */
+      #contactModal > div { padding: 1.5rem !important; }
+      /* Fix footer */
+      footer { flex-direction: column !important; text-align: center !important; padding: 1.5rem 1rem !important; }
+      .footer-links { flex-wrap: wrap !important; justify-content: center !important; }
+      /* Subjects grid */
+      .subjects-grid { grid-template-columns: repeat(2, 1fr) !important; }
+      /* Mode toggle */
+      #mode-toggle { top: 4rem !important; }
+    }
+  </style>
+</head>
+<body>
+
+
+<!-- Live floating emojis -->
+<canvas id="liveCanvas"></canvas>
+<div class="floater" style="left:5%;  animation-duration:12s; animation-delay:0s;   font-size:1.8rem;">📚</div>
+<div class="floater" style="left:12%; animation-duration:15s; animation-delay:2s;   font-size:2.2rem;">⭐</div>
+<div class="floater" style="left:22%; animation-duration:10s; animation-delay:4s;   font-size:1.5rem;">🎮</div>
+<div class="floater" style="left:35%; animation-duration:13s; animation-delay:1s;   font-size:2rem;">🚀</div>
+<div class="floater" style="left:48%; animation-duration:16s; animation-delay:3s;   font-size:1.6rem;">🧠</div>
+<div class="floater" style="left:60%; animation-duration:11s; animation-delay:5s;   font-size:2rem;">🌍</div>
+<div class="floater" style="left:72%; animation-duration:14s; animation-delay:0.5s; font-size:1.8rem;">🏆</div>
+<div class="floater" style="left:82%; animation-duration:12s; animation-delay:2.5s; font-size:1.5rem;">✏️</div>
+<div class="floater" style="left:90%; animation-duration:17s; animation-delay:4.5s; font-size:2rem;">💡</div>
+<div class="floater" style="left:18%; animation-duration:9s;  animation-delay:6s;   font-size:1.4rem;">🔭</div>
+<div class="floater" style="left:55%; animation-duration:18s; animation-delay:7s;   font-size:1.8rem;">🎨</div>
+<div class="floater" style="left:78%; animation-duration:13s; animation-delay:8s;   font-size:1.6rem;">🧪</div>
+
+<div id="cursor">🚀</div>
+<div id="cursor-trail"></div>
+
+<!-- Kids Mode Toggle -->
+<div id="mode-toggle" onclick="toggleKidsMode()">
+  <span id="mode-label">🌙 Dark</span>
+  <div class="toggle-knob"></div>
+</div>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">Edu<span>Spark</span></div>
+  <ul>
+    <li><a onclick="document.getElementById('edutainment').scrollIntoView({behavior:'smooth'})" style="cursor:pointer;">About</a></li>
+    <li><a onclick="document.getElementById('subjects').scrollIntoView({behavior:'smooth'})" style="cursor:pointer;">Subjects</a></li>
+    <li><a onclick="document.getElementById('courses').scrollIntoView({behavior:'smooth'})" style="cursor:pointer;">Courses</a></li>
+    <li><a onclick="document.getElementById('why').scrollIntoView({behavior:'smooth'})" style="cursor:pointer;">Why Us</a></li>
+    <li><a onclick="document.getElementById('plans').scrollIntoView({behavior:'smooth'})" style="cursor:pointer;">Plans</a></li>
+    <li><a onclick="document.getElementById('contact').scrollIntoView({behavior:'smooth'})" style="cursor:pointer;" class="nav-cta">Enroll Now</a></li>
+  </ul>
+  <!-- Hamburger for mobile/tablet -->
+  <div class="hamburger" id="hamburger" onclick="toggleMobileNav()">
+    <span></span><span></span><span></span>
+  </div>
+</nav>
+
+<!-- Mobile Nav Drawer -->
+<div class="mobile-nav" id="mobileNav">
+  <button class="mobile-nav-close" onclick="toggleMobileNav()">✕</button>
+  <a onclick="scrollTo('edutainment')">About</a>
+  <a onclick="scrollTo('subjects')">Subjects</a>
+  <a onclick="scrollTo('courses')">Courses</a>
+  <a onclick="scrollTo('why')">Why Us</a>
+  <a onclick="scrollTo('plans')">Plans</a>
+  <a onclick="scrollTo('contact')" style="color:var(--yellow)">Enroll Now 🎓</a>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg-shapes">
+    <span></span><span></span><span></span>
+  </div>
+  <!-- Background noise / dead space filler -->
+  <div class="hero-noise">
+    <span class="noise-el" style="left:52%;top:15%;font-size:2rem;animation-duration:7s;animation-delay:0s">+</span>
+    <span class="noise-el" style="left:63%;top:55%;font-size:1rem;animation-duration:9s;animation-delay:1s">01</span>
+    <span class="noise-el" style="left:58%;top:75%;font-size:1.5rem;animation-duration:6s;animation-delay:2s">♥</span>
+    <span class="noise-el" style="left:70%;top:30%;font-size:1rem;animation-duration:11s;animation-delay:0.5s">10</span>
+    <span class="noise-el" style="left:48%;top:40%;font-size:2.5rem;animation-duration:8s;animation-delay:3s">∞</span>
+    <span class="noise-el" style="left:75%;top:65%;font-size:1rem;animation-duration:10s;animation-delay:1.5s">λ</span>
+    <span class="noise-el" style="left:55%;top:88%;font-size:1.2rem;animation-duration:7s;animation-delay:4s">✦</span>
+    <span class="noise-el" style="left:42%;top:20%;font-size:0.9rem;animation-duration:12s;animation-delay:2.5s">{ }</span>
+    <span class="noise-el" style="left:80%;top:45%;font-size:1.8rem;animation-duration:9s;animation-delay:0.8s">◇</span>
+    <span class="noise-el" style="left:67%;top:10%;font-size:1rem;animation-duration:8s;animation-delay:3.5s">→</span>
+  </div>
+  <div class="hero-content">
+    <div class="hero-tag">🎓 Tuition Centre</div>
+    <h1>
+      Where <span class="accent-orange">Education</span><br/>
+      Meets <span class="accent-teal">Entertainment</span>
+    </h1>
+    <p>Welcome to EduSpark — the tuition centre that believes learning should feel like play. Our unique <strong style="color:#fff">Edutainment</strong> approach fuses curriculum mastery with creative, game-based, and storytelling methods so students actually <em>love</em> coming to class.</p>
+    <div class="hero-btns">
+      <a onclick="document.getElementById('contact').scrollIntoView({behavior:'smooth'})" class="btn btn-primary" style="cursor:pointer;">🚀 Start Learning!</a>
+      <a onclick="document.getElementById('edutainment').scrollIntoView({behavior:'smooth'})" style="cursor:pointer;" class="btn btn-outline">⚗️ Enter the Lab</a>
+    </div>
+  </div>
+  <div class="hero-visual">
+    <div class="emoji-grid">
+      <div class="emoji-card">🎮</div>
+      <div class="emoji-card">📐</div>
+      <div class="emoji-card">🎨</div>
+      <div class="emoji-card">🧪</div>
+      <div class="emoji-card">⭐</div>
+      <div class="emoji-card">📚</div>
+      <div class="emoji-card">🎵</div>
+      <div class="emoji-card">🧠</div>
+      <div class="emoji-card">🚀</div>
+    </div>
+  </div>
+</section>
+
+
+
+<!-- EDUTAINMENT -->
+<section class="edutainment-section" id="edutainment">
+  <div class="section-tag">Our Philosophy</div>
+  <h2 class="section-title">What is Edutainment?</h2>
+  <p class="section-sub">Edutainment = <strong style="color:var(--yellow)">Education + Entertainment</strong>. We don't believe in boring textbooks and rote learning. Instead, we blend curriculum content with games, storytelling, music, and creative challenges — so knowledge sticks naturally.</p>
+  <div class="edu-grid">
+    <div class="edu-card">
+      <div class="icon">🎮</div>
+      <h3>Game-Based Learning</h3>
+      <p>Concepts taught through quizzes, puzzles, and competitive challenges that make students want to participate and win — while learning.</p>
+    </div>
+    <div class="edu-card">
+      <div class="icon">🎭</div>
+      <h3>Storytelling & Drama</h3>
+      <p>History, science, and literature come alive through role-play, dramatisation and real-world scenarios students can relate to.</p>
+    </div>
+
+    <div class="edu-card">
+      <div class="icon">🏆</div>
+      <h3>Rewards & Progress</h3>
+      <p>Points, badges, leaderboards and celebration of milestones keep motivation high and build a genuine love for achievement.</p>
+    </div>
+  </div>
+</section>
+
+<!-- SUBJECTS -->
+<section class="subjects-section" id="subjects">
+  <div class="section-tag">What We Teach</div>
+  <h2 class="section-title">Subjects We Cover</h2>
+  <p class="section-sub">Pick your class and tap the subjects you want — we'll calculate your monthly fee instantly! 👇</p>
+
+  <!-- Class selector -->
+  <div style="display:flex; gap:0.75rem; flex-wrap:wrap; margin-bottom:2rem;">
+    <button class="class-btn active" onclick="selectClass(this,'6-8')" data-class="6-8">Class 6 – 8</button>
+    <button class="class-btn" onclick="selectClass(this,'9-10')" data-class="9-10">Class 9 – 10</button>
+    <button class="class-btn" onclick="selectClass(this,'11-12')" data-class="11-12">Class 11 – 12</button>
+  </div>
+
+  <!-- Subject cards -->
+  <div class="subjects-grid" id="subjectGrid">
+    <div class="subject-pill selectable" onclick="toggleSubject(this,'Geography')">
+      <div class="sel-check">✓</div>
+      <span class="s-icon">🌍</span>Geography
+    </div>
+    <div class="subject-pill selectable" onclick="toggleSubject(this,'History')">
+      <div class="sel-check">✓</div>
+      <span class="s-icon">🏛️</span>History
+    </div>
+    <div class="subject-pill selectable" onclick="toggleSubject(this,'Economics')">
+      <div class="sel-check">✓</div>
+      <span class="s-icon">📈</span>Economics
+    </div>
+    <div class="subject-pill selectable" onclick="toggleSubject(this,'Social Science')">
+      <div class="sel-check">✓</div>
+      <span class="s-icon">🤝</span>Social Science
+    </div>
+    <div class="subject-pill selectable" onclick="toggleSubject(this,'Sociology')">
+      <div class="sel-check">✓</div>
+      <span class="s-icon">👥</span>Sociology
+    </div>
+    <div class="subject-pill selectable" onclick="toggleSubject(this,'Artificial Intelligence')">
+      <div class="sel-check">✓</div>
+      <span class="s-icon">🤖</span>Artificial Intelligence
+    </div>
+  </div>
+
+  <!-- Cost summary card — only visible when subjects selected -->
+  <div id="costCard" style="display:none; margin-top:2rem; background:var(--dark); border:2px solid var(--orange); border-radius:20px; padding:1.5rem 2rem; max-width:480px;">
+    <div style="font-family:'Fredoka One',cursive; font-size:1.3rem; color:var(--yellow); margin-bottom:0.8rem;">🧮 Your Monthly Fee Estimate</div>
+    <div id="selectedList" style="margin-bottom:1rem; font-size:0.9rem; color:#ccc; line-height:1.8;"></div>
+    <div id="comboNote" style="display:none; background:rgba(6,214,160,0.12); border:1px solid var(--green); border-radius:10px; padding:0.7rem 1rem; margin-bottom:1rem; font-size:0.85rem; color:var(--green);"></div>
+    <div style="border-top:1px solid rgba(255,255,255,0.1); padding-top:1rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
+      <div>
+        <div style="font-size:0.8rem; color:#aaa;">Estimated total</div>
+        <div id="totalCost" style="font-family:'Fredoka One',cursive; font-size:2.2rem; color:var(--orange);"></div>
+        <div style="font-size:0.75rem; color:#888;">per month • fees negotiable 💬</div>
+      </div>
+      <a onclick="document.getElementById('contact').scrollIntoView({behavior:'smooth'})" style="cursor:pointer;" class="btn btn-primary" >📞 Enroll Now</a>
+    </div>
+  </div>
+</section>
+
+<style>
+.class-btn {
+  padding: 0.55rem 1.4rem;
+  border-radius: 50px;
+  border: 2px solid rgba(255,255,255,0.2);
+  background: transparent;
+  color: #ccc;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 800;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+.class-btn:hover { border-color: var(--orange); color: #fff; }
+.class-btn.active {
+  background: var(--orange);
+  border-color: var(--orange);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(255,107,53,0.4);
+}
+.subject-pill.selectable {
+  cursor: pointer;
+  position: relative;
+  transition: all 0.25s ease-in-out;
+  user-select: none;
+}
+.sel-check {
+  position: absolute;
+  top: 8px; right: 8px;
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: var(--orange);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 900;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+.subject-pill.selected {
+  background: rgba(255,107,53,0.18) !important;
+  border-color: var(--orange) !important;
+  box-shadow: 0 0 20px rgba(255,107,53,0.35), 0 0 6px rgba(255,217,61,0.2);
+  transform: translateY(-4px) scale(1.06);
+  color: #fff;
+}
+.subject-pill.selected .sel-check { display: flex; }
+</style>
+
+<script>
+(function() {
+  var currentClass = '6-8';
+  var prices = { '6-8': 800, '9-10': 1000, '11-12': 1200 };
+  var sstCombo = { '6-8': 3100, '9-10': 3900 };
+  var sstSubjects = ['Geography','History','Economics','Social Science'];
+
+  window.selectClass = function(btn, cls) {
+    document.querySelectorAll('.class-btn').forEach(function(b) { b.classList.remove('active'); });
+    btn.classList.add('active');
+    currentClass = cls;
+    // deselect all
+    document.querySelectorAll('.subject-pill.selectable').forEach(function(p) { p.classList.remove('selected'); });
+    updateCost();
+  };
+
+  window.toggleSubject = function(pill) {
+    pill.classList.toggle('selected');
+    updateCost();
+  };
+
+  function updateCost() {
+    var selected = [];
+    document.querySelectorAll('.subject-pill.selected').forEach(function(p) {
+      selected.push(p.getAttribute('onclick').match(/'([^']+)'\)/)[1]);
+    });
+
+    var card = document.getElementById('costCard');
+    if (selected.length === 0) { card.style.display = 'none'; return; }
+    card.style.display = 'block';
+
+    // Check if SST combo applies
+    var sstSelected = sstSubjects.filter(function(s) { return selected.indexOf(s) !== -1; });
+    var hasFullCombo = sstSelected.length === 4 && sstCombo[currentClass];
+    var price = prices[currentClass];
+
+    var total = 0;
+    var listHTML = '';
+    var comboNote = document.getElementById('comboNote');
+
+    if (hasFullCombo) {
+      // Charge combo for SST 4, individual for rest
+      var others = selected.filter(function(s) { return sstSubjects.indexOf(s) === -1; });
+      total = sstCombo[currentClass] + (others.length * price);
+      selected.forEach(function(s) {
+        var isSst = sstSubjects.indexOf(s) !== -1;
+        listHTML += '<span style="margin-right:8px;">✓</span>' + s + (isSst ? ' <span style="color:var(--green);font-size:0.78rem;">(SST Combo)</span>' : ' — ₹' + price.toLocaleString('en-IN')) + '<br/>';
+      });
+      comboNote.style.display = 'block';
+      comboNote.innerHTML = '🎉 <strong>SST Combo applied!</strong> All 4 SST subjects bundled at ₹' + sstCombo[currentClass].toLocaleString('en-IN') + '/month — saving you ₹' + ((4 * price) - sstCombo[currentClass]).toLocaleString('en-IN') + '!';
+    } else {
+      total = selected.length * price;
+      selected.forEach(function(s) {
+        listHTML += '<span style="margin-right:8px;">✓</span>' + s + ' — ₹' + price.toLocaleString('en-IN') + '/month<br/>';
+      });
+      comboNote.style.display = 'none';
+
+      // Hint about combo
+      if (sstSelected.length >= 2 && sstSelected.length < 4 && sstCombo[currentClass]) {
+        var missing = sstSubjects.filter(function(s) { return selected.indexOf(s) === -1; });
+        comboNote.style.display = 'block';
+        comboNote.style.background = 'rgba(255,217,61,0.08)';
+        comboNote.style.borderColor = 'var(--yellow)';
+        comboNote.style.color = 'var(--yellow)';
+        comboNote.innerHTML = '💡 Add <strong>' + missing.join(' & ') + '</strong> to unlock the SST Combo and save ₹' + ((4 * price) - sstCombo[currentClass]).toLocaleString('en-IN') + '!';
+      }
+    }
+
+    document.getElementById('selectedList').innerHTML = '<strong style="color:#fff;font-size:0.85rem;">Class ' + currentClass + ' · ' + selected.length + ' subject' + (selected.length > 1 ? 's' : '') + '</strong><br/>' + listHTML;
+    document.getElementById('totalCost').textContent = '₹' + total.toLocaleString('en-IN');
+  }
+})();
+</script>
+
+<!-- COURSES -->
+<section class="courses-section" id="courses">
+  <div class="section-tag">Special Programmes</div>
+  <h2 class="section-title">Our Courses</h2>
+  <p class="section-sub">Beyond regular subjects — exclusive courses designed to give students a real-world edge.</p>
+
+  <div class="courses-grid">
+
+    <!-- Spoken English -->
+    <div class="course-card">
+      <div class="course-badge">🔥 New</div>
+      <div class="course-icon">🗣️</div>
+      <div class="course-name">Spoken English</div>
+      <div class="course-tag-row">
+        <span class="course-tag">All Classes</span>
+        <span class="course-tag">3 Months</span>
+      </div>
+      <p class="course-desc">Build real confidence in speaking English fluently. Through fun conversations, storytelling, debates and role-play — students learn to express themselves clearly and boldly.</p>
+      <ul class="course-highlights">
+        <li>🎤 Live speaking practice every session</li>
+        <li>📖 Vocabulary & grammar through stories</li>
+        <li>🎭 Role-play & debate activities</li>
+        <li>🏆 Confidence-building techniques</li>
+      </ul>
+      <div class="course-footer">
+        <div>
+          <div class="course-price">₹3,000</div>
+          <div class="course-duration">Complete 3-month programme</div>
+        </div>
+        <a onclick="document.getElementById('contact').scrollIntoView({behavior:'smooth'})" class="btn btn-primary" style="cursor:pointer; font-size:0.85rem; padding:0.65rem 1.4rem;">Enroll Now</a>
+      </div>
+    </div>
+
+    <!-- Placeholder for more courses -->
+    <div class="course-card course-coming">
+      <div class="course-icon" style="opacity:0.4;">🧮</div>
+      <div class="course-name" style="color:#666;">More Courses</div>
+      <p class="course-desc" style="color:#555;">New exciting courses coming soon! Stay tuned for updates on more skill-building programmes.</p>
+      <div style="margin-top:auto; padding-top:1rem;">
+        <a href="tel:6207590802" class="btn btn-outline" style="font-size:0.85rem; padding:0.65rem 1.4rem; width:100%; text-align:center; display:block;">📞 Ask Us</a>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<style>
+/* ── Courses Section ── */
+.courses-section {
+  background: linear-gradient(135deg, #0f172a 0%, #1a0a2e 50%, #0f172a 100%);
+  padding: 6rem 4rem;
+}
+.courses-section .section-title { color: #fff; }
+.courses-section .section-tag   { color: var(--teal); }
+.courses-section .section-sub   { color: #bbb; }
+.courses-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+.course-card {
+  background: rgba(255,255,255,0.04);
+  border: 1.5px solid rgba(255,255,255,0.1);
+  border-radius: 24px;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+.course-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--orange), #FF2DAA);
+  border-radius: 24px 24px 0 0;
+}
+.course-card:hover {
+  transform: translateY(-8px);
+  border-color: rgba(255,107,53,0.4);
+  box-shadow: 0 20px 50px rgba(255,107,53,0.2);
+}
+.course-coming { opacity: 0.55; }
+.course-coming:hover { transform: none; box-shadow: none; }
+.course-badge {
+  position: absolute;
+  top: 1.2rem; right: 1.2rem;
+  background: linear-gradient(135deg, var(--orange), #FF2DAA);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 0.25rem 0.75rem;
+  border-radius: 50px;
+  letter-spacing: 0.5px;
+}
+.course-icon { font-size: 2.8rem; line-height: 1; }
+.course-name {
+  font-family: 'Fredoka One', cursive;
+  font-size: 1.6rem;
+  color: #fff;
+}
+.course-tag-row { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.course-tag {
+  font-size: 0.75rem;
+  font-weight: 800;
+  background: rgba(30,203,225,0.12);
+  color: var(--teal);
+  border: 1px solid rgba(30,203,225,0.25);
+  padding: 0.2rem 0.7rem;
+  border-radius: 50px;
+}
+.course-desc {
+  color: #aaa;
+  font-size: 0.92rem;
+  line-height: 1.65;
+}
+.course-highlights {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.course-highlights li {
+  font-size: 0.88rem;
+  color: #ccc;
+  padding: 0.3rem 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.course-footer {
+  margin-top: auto;
+  padding-top: 1.2rem;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.course-price {
+  font-family: 'Fredoka One', cursive;
+  font-size: 2rem;
+  color: var(--yellow);
+}
+.course-duration {
+  font-size: 0.78rem;
+  color: #888;
+  margin-top: 0.1rem;
+}
+@media (max-width: 767px) {
+  .courses-section { padding: 3rem 1.2rem; }
+  .courses-grid { grid-template-columns: 1fr; }
+}
+</style>
+
+<!-- WHY US -->
+<section class="why-section" id="why">
+  <div class="why-grid">
+    <div>
+      <div class="section-tag">Why EduSpark?</div>
+      <h2 class="section-title">Learning That Actually Works</h2>
+      <p class="section-sub">We combine the best of modern pedagogy with genuine fun, so students grow in confidence, curiosity, and results.</p>
+      <div class="why-list">
+        <div class="why-item">
+          <div class="why-icon">🎯</div>
+          <div>
+            <h4>Personalised Attention</h4>
+            <p>Small batch sizes ensure every student is seen, heard, and supported at their own pace.</p>
+          </div>
+        </div>
+        <div class="why-item">
+          <div class="why-icon">🧑‍🏫</div>
+          <div>
+            <h4>Expert Edutainment Teachers</h4>
+            <p>Our educators are trained in both subject matter and creative teaching methodologies.</p>
+          </div>
+        </div>
+        <div class="why-item">
+          <div class="why-icon">📊</div>
+          <div>
+            <h4>Regular Progress Reports</h4>
+            <p>Parents receive detailed updates on academic growth and engagement every month.</p>
+          </div>
+        </div>
+        <div class="why-item">
+          <div class="why-icon">🏡</div>
+          <div>
+            <h4>Safe & Joyful Environment</h4>
+            <p>A welcoming space where students feel comfortable to ask, explore, and make mistakes.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PLANS -->
+<section class="plans-section" id="plans">
+  <div class="section-tag">Fee Structure</div>
+  <h2 class="section-title">Monthly Fee Chart</h2>
+  <p class="section-sub">Simple, transparent pricing by class. All fees include full Edutainment sessions, study materials, and monthly progress reports.</p>
+
+  <div class="plans-grid">
+
+    <!-- Class 6-8 -->
+    <div class="plan-card">
+      <div class="card-glow"></div>
+      <div class="plan-name">Class 6 – 8</div>
+      <div class="plan-price">₹800 <span>/ subject / month</span></div>
+      <ul class="plan-features">
+        <li>🌍 Geography</li>
+        <li>🏛️ History</li>
+        <li>📈 Economics</li>
+        <li>🤝 Social Science</li>
+        <li>👥 Sociology</li>
+        <li>🤖 Artificial Intelligence</li>
+      </ul>
+      <div style="margin: 0.5rem 0 1.2rem; padding: 0.9rem 1rem; background: rgba(255,217,61,0.1); border-radius: 12px; border: 1px solid rgba(255,217,61,0.25);">
+        <div style="font-family:'Fredoka One',cursive; color:var(--yellow); font-size:1rem; margin-bottom:0.3rem;">🎯 Full SST Combo</div>
+        <div style="color:#ccc; font-size:0.85rem;">Geo + History + Eco + Social Science</div>
+        <div style="font-family:'Fredoka One',cursive; color:var(--green); font-size:1.4rem; margin-top:0.3rem;">₹3,100 <span style="font-family:'Nunito',sans-serif; font-size:0.8rem; color:#bbb">/ month</span></div>
+      </div>
+      <a onclick="document.getElementById('contact').scrollIntoView({behavior:'smooth'})" style="cursor:pointer;" class="btn btn-outline" style="width:100%; text-align:center;">Enroll Now</a>
+    </div>
+
+    <!-- Class 9-10 -->
+    <div class="plan-card featured">
+      <div class="card-glow"></div>
+      <div class="plan-badge">Board Classes</div>
+      <div class="plan-name">Class 9 – 10</div>
+      <div class="plan-price">₹1,000 <span>/ subject / month</span></div>
+      <ul class="plan-features">
+        <li>🌍 Geography</li>
+        <li>🏛️ History</li>
+        <li>📈 Economics</li>
+        <li>🤝 Social Science</li>
+        <li>👥 Sociology</li>
+        <li>🤖 Artificial Intelligence</li>
+      </ul>
+      <div style="margin: 0.5rem 0 1.2rem; padding: 0.9rem 1rem; background: rgba(255,255,255,0.12); border-radius: 12px; border: 1px solid rgba(255,255,255,0.2);">
+        <div style="font-family:'Fredoka One',cursive; color:var(--yellow); font-size:1rem; margin-bottom:0.3rem;">🎯 Full SST Combo</div>
+        <div style="color:rgba(255,255,255,0.8); font-size:0.85rem;">Geo + History + Eco + Social Science</div>
+        <div style="font-family:'Fredoka One',cursive; color:#fff; font-size:1.4rem; margin-top:0.3rem;">₹3,900 <span style="font-family:'Nunito',sans-serif; font-size:0.8rem; color:rgba(255,255,255,0.7)">/ month</span></div>
+      </div>
+      <a onclick="document.getElementById('contact').scrollIntoView({behavior:'smooth'})" style="cursor:pointer;" class="btn btn-white" style="width:100%; text-align:center;">Enroll Now</a>
+    </div>
+
+    <!-- Class 11-12 -->
+    <div class="plan-card">
+      <div class="card-glow"></div>
+      <div class="plan-name">Class 11 – 12</div>
+      <div class="plan-price">₹1,200 <span>/ subject / month</span></div>
+      <ul class="plan-features">
+        <li>🌍 Geography</li>
+        <li>🏛️ History</li>
+        <li>📈 Economics</li>
+        <li>🤝 Social Science</li>
+        <li>👥 Sociology</li>
+        <li>🤖 Artificial Intelligence</li>
+      </ul>
+      <a onclick="document.getElementById('contact').scrollIntoView({behavior:'smooth'})" style="cursor:pointer;" class="btn btn-outline" style="width:100%; text-align:center;">Enroll Now</a>
+    </div>
+
+  </div>
+  <p class="fee-note">📞 Call or WhatsApp <strong style="color:#fff">6207590802</strong> to enroll</p>
+</section>
+
+<!-- CTA -->
+<section class="cta-section" id="contact">
+  <h2>Ready to Ignite Your Child's Love for Learning? 🚀</h2>
+  <p>Join students already thriving with the Edutainment method. Get in touch today!</p>
+  <div style="display:flex; gap:1rem; justify-content:center; flex-wrap:wrap; margin-bottom:1rem;">
+    <a href="tel:6207590802" class="btn btn-white">📞 6207590802</a>
+  </div>
+  <p style="color:rgba(255,255,255,0.7); font-size:0.9rem;">Call or WhatsApp us anytime — we'd love to hear from you!</p>
+</section>
+
+<!-- CONTACT MODAL -->
+<div id="contactModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; width:100%; height:100%; background:rgba(0,0,0,0.75); z-index:1000; align-items:center; justify-content:center; padding:1rem; overflow-y:auto; -webkit-overflow-scrolling:touch;">
+  <div style="background:#1a1208; border:2px solid var(--yellow); border-radius:20px; padding:1.8rem; width:100%; max-width:480px; position:relative; animation: fadeUp 0.3s ease; margin: auto; max-height:90vh; overflow-y:auto; -webkit-overflow-scrolling:touch;">
+    <!-- Close -->
+    <button id="closeModalBtn" style="position:absolute; top:1rem; right:1.2rem; background:none; border:none; color:#aaa; font-size:1.6rem; cursor:pointer; line-height:1;">✕</button>
+
+    <div style="font-family:'Fredoka One',cursive; font-size:1.8rem; color:var(--yellow); margin-bottom:0.3rem;">Get In Touch 🎓</div>
+    <p style="color:#aaa; font-size:0.9rem; margin-bottom:1.8rem;">Fill in your details and we'll get back to you shortly!</p>
+
+    <div id="formSuccess" style="display:none; background:rgba(6,214,160,0.15); border:1px solid var(--green); border-radius:12px; padding:1rem; text-align:center; color:var(--green); font-weight:700; margin-bottom:1rem;">
+      ✅ Thank you! We'll contact you soon.
+    </div>
+
+    <form id="contactForm" onsubmit="handleSubmit(event)">
+      <!-- Name -->
+      <div style="margin-bottom:1.2rem;">
+        <label style="display:block; color:#ccc; font-size:0.85rem; font-weight:700; margin-bottom:0.4rem; letter-spacing:0.5px;">FULL NAME *</label>
+        <input type="text" id="fname" required placeholder="e.g. Rahul Sharma"
+          style="width:100%; padding:0.8rem 1rem; border-radius:10px; border:1.5px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.07); color:#fff; font-family:'Nunito',sans-serif; font-size:16px; outline:none; transition:border-color 0.2s;"
+          onfocus="this.style.borderColor='var(--yellow)'" onblur="this.style.borderColor='rgba(255,255,255,0.15)'"/>
+      </div>
+
+      <!-- Phone -->
+      <div style="margin-bottom:1.2rem;">
+        <label style="display:block; color:#ccc; font-size:0.85rem; font-weight:700; margin-bottom:0.4rem; letter-spacing:0.5px;">PHONE NUMBER *</label>
+        <input type="tel" id="fphone" required placeholder="e.g. 98765 43210"
+          style="width:100%; padding:0.8rem 1rem; border-radius:10px; border:1.5px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.07); color:#fff; font-family:'Nunito',sans-serif; font-size:16px; outline:none; transition:border-color 0.2s;"
+          onfocus="this.style.borderColor='var(--yellow)'" onblur="this.style.borderColor='rgba(255,255,255,0.15)'"/>
+      </div>
+
+      <!-- Class -->
+      <div style="margin-bottom:1.2rem;">
+        <label style="display:block; color:#ccc; font-size:0.85rem; font-weight:700; margin-bottom:0.4rem; letter-spacing:0.5px;">STUDENT'S CLASS *</label>
+        <select id="fclass" required
+          style="width:100%; padding:0.8rem 1rem; border-radius:10px; border:1.5px solid rgba(255,255,255,0.15); background:#1a1208; color:#fff; font-family:'Nunito',sans-serif; font-size:1rem; outline:none; transition:border-color 0.2s;"
+          onfocus="this.style.borderColor='var(--yellow)'" onblur="this.style.borderColor='rgba(255,255,255,0.15)'">
+          <option value="" disabled selected>Select class</option>
+          <option value="6-8">Class 6 – 8</option>
+          <option value="9-10">Class 9 – 10</option>
+          <option value="11-12">Class 11 – 12</option>
+        </select>
+      </div>
+
+      <!-- Message -->
+      <div style="margin-bottom:1.8rem;">
+        <label style="display:block; color:#ccc; font-size:0.85rem; font-weight:700; margin-bottom:0.4rem; letter-spacing:0.5px;">YOUR MESSAGE / ENQUIRY</label>
+        <textarea id="fmessage" rows="3" placeholder="Tell us what subjects you're interested in, or any questions you have..."
+          style="width:100%; padding:0.8rem 1rem; border-radius:10px; border:1.5px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.07); color:#fff; font-family:'Nunito',sans-serif; font-size:1rem; outline:none; resize:vertical; transition:border-color 0.2s;"
+          onfocus="this.style.borderColor='var(--yellow)'" onblur="this.style.borderColor='rgba(255,255,255,0.15)'"></textarea>
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="width:100%; font-size:1rem; cursor:none;">
+        Send Enquiry 🚀
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">Edu<span>Spark</span></div>
+  <p>© 2025 EduSpark Tuition Centre. All rights reserved.</p>
+  <div class="footer-links">
+    <a onclick="document.getElementById('edutainment').scrollIntoView({behavior:'smooth'})" style="cursor:pointer;">About</a>
+    <a onclick="document.getElementById('subjects').scrollIntoView({behavior:'smooth'})" style="cursor:pointer;">Subjects</a>
+    <a onclick="document.getElementById('plans').scrollIntoView({behavior:'smooth'})" style="cursor:pointer;">Plans</a>
+
+    <a href="tel:6207590802">📞 6207590802</a>
+  </div>
+</footer>
+<script>
+window.addEventListener('DOMContentLoaded', function() {
+  var modal    = document.getElementById('contactModal');
+  var openBtn  = document.getElementById('openModalBtn');
+  var closeBtn = document.getElementById('closeModalBtn');
+  if (openBtn) openBtn.addEventListener('click', function() { modal.style.display = 'flex'; });
+  if (closeBtn) closeBtn.addEventListener('click', function() { modal.style.display = 'none'; });
+  if (modal) modal.addEventListener('click', function(e) { if (e.target === modal) modal.style.display = 'none'; });
+
+  var form = document.getElementById('contactForm');
+  if (form) {
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      var name    = document.getElementById('fname').value.trim();
+      var phone   = document.getElementById('fphone').value.trim();
+      var cls     = document.getElementById('fclass').value;
+      var message = document.getElementById('fmessage').value.trim();
+
+      // Validate
+      if (!name || !phone) {
+        alert('Please fill in your name and phone number.');
+        return;
+      }
+
+      // Save to localStorage so you can retrieve enquiries
+      var enquiries = JSON.parse(localStorage.getItem('eduspark_enquiries') || '[]');
+      enquiries.push({
+        name: name, phone: phone, cls: cls,
+        message: message,
+        date: new Date().toLocaleString('en-IN')
+      });
+      localStorage.setItem('eduspark_enquiries', JSON.stringify(enquiries));
+
+      // Open mailto as a link (not popup — avoids blocker)
+      var subject = encodeURIComponent('EduSpark Enquiry from ' + name);
+      var body    = encodeURIComponent(
+        'Name: ' + name + '\n' +
+        'Phone: ' + phone + '\n' +
+        'Class: ' + cls + '\n\n' +
+        'Message:\n' + (message || 'No message provided')
+      );
+      var mailLink = document.createElement('a');
+      mailLink.href = 'mailto:mailanikgupta@gmail.com?subject=' + subject + '&body=' + body;
+      mailLink.style.display = 'none';
+      document.body.appendChild(mailLink);
+      mailLink.click();
+      document.body.removeChild(mailLink);
+
+      // Show success message
+      form.style.display = 'none';
+      var successEl = document.getElementById('formSuccess');
+      successEl.innerHTML = '✅ Thank you, <strong>' + name + '</strong>! We\'ve received your enquiry and will call you at <strong>' + phone + '</strong> within 24 hours. 🎓';
+      successEl.style.display = 'block';
+
+      setTimeout(function() {
+        modal.style.display = 'none';
+        form.style.display = 'block';
+        successEl.style.display = 'none';
+        form.reset();
+      }, 4000);
+    });
+  }
+
+  // ── Rocket cursor + trail ──
+  var cursor = document.getElementById('cursor');
+  var trail  = document.getElementById('cursor-trail');
+  var trailX = 0, trailY = 0;
+
+  document.addEventListener('mousemove', function(e) {
+    cursor.style.left = e.clientX + 'px';
+    cursor.style.top  = e.clientY + 'px';
+    setTimeout(function() {
+      trail.style.left = e.clientX + 'px';
+      trail.style.top  = e.clientY + 'px';
+    }, 80);
+  });
+  document.querySelectorAll('a, button, .subject-pill, .emoji-card').forEach(function(el) {
+    el.addEventListener('mouseenter', function() {
+      cursor.style.transform = 'translate(-50%,-50%) rotate(-45deg) scale(1.5)';
+      cursor.style.filter = 'drop-shadow(0 0 12px #FFD93D)';
+    });
+    el.addEventListener('mouseleave', function() {
+      cursor.style.transform = 'translate(-50%,-50%) rotate(-45deg) scale(1)';
+      cursor.style.filter = 'drop-shadow(0 0 6px rgba(255,107,53,0.8))';
+    });
+  });
+
+  // ── Kids Mode Toggle ──
+  window.toggleKidsMode = function() {
+    var isLight = document.body.classList.toggle('kids-light');
+    document.getElementById('mode-label').textContent = isLight ? '☀️ Light' : '🌙 Dark';
+  };
+
+  var observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) { entry.target.style.opacity = '1'; entry.target.style.transform = 'translateY(0)'; }
+    });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.edu-card, .subject-pill, .why-item, .plan-card').forEach(function(el) {
+    el.style.opacity = '0'; el.style.transform = 'translateY(30px)';
+    el.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+    observer.observe(el);
+  });
+});
+</script>
+
+<!-- ── CHATBOT ── -->
+<div id="chatBtn" title="Chat with us" style="position:fixed; bottom:1.8rem; right:1.8rem; z-index:500; width:96px; height:116px; cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:flex-end;">
+
+<!-- FLAT VECTOR EVE -->
+<svg id="eveSvg" width="96" height="112" viewBox="0 0 96 112" fill="none" xmlns="http://www.w3.org/2000/svg" style="overflow:visible;">
+
+
+
+  <!-- ── BODY (clean white egg) ── -->
+  <ellipse cx="48" cy="80" rx="27" ry="28" fill="#F0F4FF"/>
+  <!-- body left shadow -->
+  <ellipse cx="34" cy="82" rx="9" ry="18" fill="#D0D8EE" opacity="0.5"/>
+  <!-- body right highlight -->
+  <ellipse cx="58" cy="70" rx="7" ry="12" fill="white" opacity="0.7"/>
+  <!-- body bottom shade -->
+  <ellipse cx="48" cy="103" rx="20" ry="7" fill="#C0CCE8" opacity="0.45"/>
+
+  <!-- ── CHEST STRIPE (single clean blue stripe) ── -->
+  <rect x="30" y="88" width="36" height="8" rx="4" fill="#1ECBE1" opacity="0.85"/>
+  <rect x="32" y="89" width="32" height="3" rx="1.5" fill="white" opacity="0.25"/>
+
+  <!-- ── LEFT ARM ── -->
+  <ellipse cx="19" cy="83" rx="5.5" ry="9" fill="#E0E8F8" transform="rotate(-18,19,83)"/>
+  <ellipse cx="16" cy="79" rx="2" ry="3" fill="white" opacity="0.5" transform="rotate(-18,16,79)"/>
+  <ellipse cx="14" cy="90" rx="5" ry="5.5" fill="#D0D8F0" transform="rotate(-10,14,90)"/>
+
+  <!-- ── RIGHT ARM ── -->
+  <ellipse cx="77" cy="83" rx="5.5" ry="9" fill="#E0E8F8" transform="rotate(18,77,83)"/>
+  <ellipse cx="80" cy="79" rx="2" ry="3" fill="white" opacity="0.5" transform="rotate(18,80,79)"/>
+  <ellipse cx="82" cy="90" rx="5" ry="5.5" fill="#D0D8F0" transform="rotate(10,82,90)"/>
+
+  <!-- ── HEAD GROUP (tilts with cursor) ── -->
+  <g id="eveHead" style="transform-origin:48px 38px; transform:rotate(0deg)">
+
+    <!-- head dome -->
+    <ellipse cx="48" cy="36" rx="30" ry="33" fill="#F0F4FF"/>
+    <!-- head left shadow -->
+    <ellipse cx="34" cy="38" rx="10" ry="20" fill="#D0D8EE" opacity="0.45"/>
+    <!-- head top shine -->
+    <ellipse cx="41" cy="14" rx="12" ry="8" fill="white" opacity="0.6" transform="rotate(-18,41,14)"/>
+    <!-- head right highlight -->
+    <ellipse cx="62" cy="28" rx="5" ry="10" fill="white" opacity="0.4"/>
+
+    <!-- ── EAR FLAPS ── -->
+    <rect x="4"  y="18" width="13" height="22" rx="6" fill="#D8E0F0"/>
+    <rect x="6"  y="21" width="9"  height="4"  rx="2" fill="#B0BCD8"/>
+    <rect x="6"  y="27" width="9"  height="4"  rx="2" fill="#B0BCD8"/>
+    <rect x="6"  y="33" width="9"  height="4"  rx="2" fill="#B0BCD8"/>
+    <rect x="79" y="18" width="13" height="22" rx="6" fill="#D8E0F0"/>
+    <rect x="81" y="21" width="9"  height="4"  rx="2" fill="#B0BCD8"/>
+    <rect x="81" y="27" width="9"  height="4"  rx="2" fill="#B0BCD8"/>
+    <rect x="81" y="33" width="9"  height="4"  rx="2" fill="#B0BCD8"/>
+
+    <!-- ── VISOR (bold flat black) ── -->
+    <ellipse cx="48" cy="40" rx="24" ry="13" fill="#0D0F1A"/>
+    <!-- visor inner -->
+    <ellipse cx="48" cy="40" rx="22" ry="11" fill="#070810"/>
+    <!-- visor top sheen -->
+    <ellipse cx="43" cy="31" rx="10" ry="3.5" fill="white" opacity="0.05" transform="rotate(-8,43,31)"/>
+
+    <!-- ── EYE GROUP (shifts with cursor) ── -->
+    <g id="eveEyes">
+      <!-- LEFT EYE -->
+      <!-- outer glow ring -->
+      <circle cx="33" cy="40" r="9" fill="#0033AA" opacity="0.3"/>
+      <!-- main iris — big, bright, flat -->
+      <circle cx="33" cy="40" r="8" fill="#1ECBE1"/>
+      <!-- iris inner -->
+      <circle cx="33" cy="40" r="5.5" fill="#0099CC"/>
+      <!-- pupil -->
+      <circle cx="33" cy="40" r="3" fill="#00334A"/>
+      <!-- sharp white highlight top-left -->
+      <ellipse cx="30" cy="36.5" rx="2.8" ry="2" fill="white" opacity="0.95" transform="rotate(-20,30,36.5)"/>
+      <!-- tiny bottom glint -->
+      <circle cx="35" cy="44" r="1" fill="white" opacity="0.4"/>
+      <!-- rim -->
+      <circle cx="33" cy="40" r="8" fill="none" stroke="#80F8FF" stroke-width="1.2" opacity="0.6"/>
+
+      <!-- RIGHT EYE -->
+      <circle cx="63" cy="40" r="9" fill="#0033AA" opacity="0.3"/>
+      <circle cx="63" cy="40" r="8" fill="#1ECBE1"/>
+      <circle cx="63" cy="40" r="5.5" fill="#0099CC"/>
+      <circle cx="63" cy="40" r="3" fill="#00334A"/>
+      <ellipse cx="60" cy="36.5" rx="2.8" ry="2" fill="white" opacity="0.95" transform="rotate(-20,60,36.5)"/>
+      <circle cx="65" cy="44" r="1" fill="white" opacity="0.4"/>
+      <circle cx="63" cy="40" r="8" fill="none" stroke="#80F8FF" stroke-width="1.2" opacity="0.6"/>
+    </g>
+
+    <!-- head-body join -->
+    <ellipse cx="48" cy="56" rx="18" ry="5" fill="#E0E8F8" opacity="0.9"/>
+    <ellipse cx="42" cy="55" rx="6" ry="2" fill="white" opacity="0.4"/>
+  </g>
+
+</svg>
+
+  <!-- pulse ring -->
+
+</div>
+
+<style>
+@keyframes pulseRingEve {
+  0%   { transform:translateX(-50%) scale(0.85); opacity:0.8; }
+  100% { transform:translateX(-50%) scale(1.45); opacity:0; }
+}
+#chatBtn #eveSvg {
+  filter: drop-shadow(0 6px 22px rgba(30,150,255,0.38));
+  animation: eveBobFlat 3.2s ease-in-out infinite;
+  transform-origin: center bottom;
+}
+@keyframes eveBobFlat {
+  0%,100% { transform: translateY(0px); }
+  50%      { transform: translateY(-7px); }
+}
+#chatBtn:hover #eveSvg {
+  filter: drop-shadow(0 10px 32px rgba(30,203,225,0.7));
+}
+</style>
+
+<script>
+(function() {
+  var svg     = document.getElementById('eveSvg');
+  var head    = document.getElementById('eveHead');
+  var eyes    = document.getElementById('eveEyes');
+  var chatBtn = document.getElementById('chatBtn');
+  if (!svg || !head) return;
+
+  var tiltX = 0, tiltY = 0, curTiltX = 0, curTiltY = 0;
+  var eyeX  = 0, eyeY  = 0, curEyeX  = 0, curEyeY  = 0;
+  var bobT  = 0;
+
+  // ── Mouse: tilt head toward cursor from anywhere on screen ──
+  document.addEventListener('mousemove', function(e) {
+    var rect = svg.getBoundingClientRect();
+    var cx   = rect.left + rect.width  / 2;
+    var cy   = rect.top  + rect.height / 2;
+    var dx   = (e.clientX - cx) / (window.innerWidth  / 2);
+    var dy   = (e.clientY - cy) / (window.innerHeight / 2);
+    tiltY  = dx * 14;
+    tiltX  = dy * -8;
+    eyeX   = dx * 3.5;
+    eyeY   = dy * 2.5;
+  });
+
+  // ── Gyroscope for mobile ──
+  function onGyro(e) {
+    var g = Math.max(-40, Math.min(40, e.gamma || 0));
+    var b = Math.max(-40, Math.min(40, (e.beta || 0) - 25));
+    tiltY = (g / 40) * 16;
+    tiltX = (b / 40) * -9;
+    eyeX  = (g / 40) * 4;
+    eyeY  = (b / 40) * 3;
+  }
+  if (window.DeviceOrientationEvent) {
+    if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+      chatBtn.addEventListener('click', function req() {
+        DeviceOrientationEvent.requestPermission().then(function(s) {
+          if (s === 'granted') window.addEventListener('deviceorientation', onGyro);
+        });
+        chatBtn.removeEventListener('click', req);
+      });
+    } else {
+      window.addEventListener('deviceorientation', onGyro);
+    }
+  }
+
+  // ── Smooth animation loop ──
+  function tick() {
+    bobT += 0.017;
+    var lerp = 0.09;
+    curTiltX += (tiltX - curTiltX) * lerp;
+    curTiltY += (tiltY - curTiltY) * lerp;
+    curEyeX  += (eyeX  - curEyeX)  * 0.13;
+    curEyeY  += (eyeY  - curEyeY)  * 0.13;
+
+    var bobY    = Math.sin(bobT) * 6;
+    var wobble  = Math.sin(bobT * 0.65) * 1.2;
+
+    // Bob the whole SVG
+    svg.style.transform = 'translateY(' + bobY.toFixed(2) + 'px)';
+
+    // Tilt the head toward cursor (head pivots on neck)
+    head.style.transform =
+      'rotate(' + (curTiltY * 0.55 + wobble).toFixed(2) + 'deg) ' +
+      'translateX(' + (curTiltY * 0.4).toFixed(2) + 'px) ' +
+      'translateY(' + (curTiltX * 0.3).toFixed(2) + 'px)';
+
+    // Shift the eyes inside the head
+    eyes.setAttribute('transform',
+      'translate(' + curEyeX.toFixed(2) + ',' + curEyeY.toFixed(2) + ')'
+    );
+
+    requestAnimationFrame(tick);
+  }
+
+  chatBtn.style.perspective = '500px';
+  tick();
+})();
+</script>
+
+<div id="chatBox" style="display:none; position:fixed; bottom:7rem; right:1.5rem; z-index:500; width:min(340px, calc(100vw - 2rem)); background:#0d0d0d; border:2px solid var(--yellow); border-radius:20px; overflow:hidden; box-shadow:0 10px 40px rgba(0,0,0,0.5); flex-direction:column;">
+  <!-- Header -->
+  <div style="background:var(--orange); padding:1rem 1.2rem; display:flex; align-items:center; justify-content:space-between;">
+    <div>
+      <div style="font-family:'Fredoka One',cursive; color:#fff; font-size:1.1rem;">EduSpark Assistant 🤖</div>
+      <div style="color:rgba(255,255,255,0.8); font-size:0.75rem;">Ask me anything about our courses!</div>
+    </div>
+    <button id="closeChatBtn" style="background:none; border:none; color:#fff; font-size:1.4rem; cursor:pointer; line-height:1;">✕</button>
+  </div>
+
+  <!-- Messages -->
+  <div id="chatMessages" style="height:300px; overflow-y:auto; padding:1rem; display:flex; flex-direction:column; gap:0.75rem;">
+    <div class="bot-msg" style="background:rgba(255,255,255,0.08); border-radius:12px 12px 12px 4px; padding:0.75rem 1rem; color:#ddd; font-size:0.88rem; max-width:85%; line-height:1.5;">
+      👋 Hi! I'm the EduSpark assistant. Ask me about subjects, fees, classes, or anything else!
+    </div>
+  </div>
+
+  <!-- Input -->
+  <div style="padding:0.75rem; border-top:1px solid rgba(255,255,255,0.1); display:flex; gap:0.5rem;">
+    <input id="chatInput" type="text" placeholder="Type your question..." 
+      style="flex:1; background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.15); border-radius:10px; padding:0.6rem 0.9rem; color:#fff; font-family:'Nunito',sans-serif; font-size:0.9rem; outline:none;"
+      onkeydown="if(event.key==='Enter') sendChat()"/>
+    <button onclick="sendChat()" style="background:var(--orange); border:none; border-radius:10px; padding:0.6rem 0.9rem; color:#fff; font-size:1rem; cursor:pointer;">➤</button>
+  </div>
+</div>
+
+<script>
+(function() {
+  var chatBtn   = document.getElementById('chatBtn');
+  var chatBox   = document.getElementById('chatBox');
+  var closeChat = document.getElementById('closeChatBtn');
+  var messages  = [];
+
+  chatBtn.addEventListener('click', function() {
+    chatBox.style.display = chatBox.style.display === 'flex' ? 'none' : 'flex';
+    chatBox.style.flexDirection = 'column';
+  });
+  closeChat.addEventListener('click', function() { chatBox.style.display = 'none'; });
+
+  window.sendChat = async function() {
+    var input = document.getElementById('chatInput');
+    var text  = input.value.trim();
+    if (!text) return;
+    input.value = '';
+
+    appendMsg(text, 'user');
+    messages.push({ role: 'user', content: text });
+
+    var typing = appendMsg('...typing', 'bot');
+
+    try {
+      var res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 400,
+          system: `You are a friendly and professional assistant for EduSpark, a tuition centre that uses the Edutainment method — combining education with entertainment.
+
+Your job is to:
+1. Answer questions about fees, subjects, timings and about EduSpark
+2. Collect the name, phone number and class of interested students/parents
+3. Help book a trial class by asking for their preferred time and contact details
+4. Always be warm, encouraging and professional
+5. If you cannot answer something, say: "Let me connect you with our team — please call or WhatsApp 6207590802"
+6. Whenever fees or pricing is mentioned, always add that fees are NEGOTIABLE and parents can contact us to discuss a suitable plan.
+
+--- KNOWLEDGE BASE ---
+
+[FEES & SUBJECTS]
+Q: What is the fee for Class 6-8?
+A: For Class 6-8, the fee is ₹800 per subject per month. We also offer a Full SST Combo (Geography + History + Economics + Social Science) for ₹3,100 per month. Please note that fees are negotiable — feel free to contact us to discuss!
+
+Q: What is the fee for Class 9-10?
+A: For Class 9-10, the fee is ₹1,000 per subject per month. The Full SST Combo is available for ₹3,900 per month. Fees are negotiable, so please reach out and we can work something out!
+
+Q: What is the fee for Class 11-12?
+A: For Class 11-12, the fee is ₹1,200 per subject per month. Fees are negotiable — please contact us to discuss the best option for you!
+
+Q: What is the fee / price / cost / how much?
+A: Here is our complete fee structure:
+
+📚 Class 6-8: ₹800 per subject per month | Full SST Combo (Geo + History + Eco + Social Science): ₹3,100/month
+📚 Class 9-10: ₹1,000 per subject per month | Full SST Combo: ₹3,900/month
+📚 Class 11-12: ₹1,200 per subject per month
+
+💬 All fees are negotiable! We believe every student deserves quality education, so please contact us at 6207590802 and we will find a plan that works for your budget.
+
+Q: What subjects do you teach?
+A: We teach Geography, History, Economics, Social Science, Sociology, and Artificial Intelligence.
+
+Q: What is the SST Combo?
+A: The SST Combo covers Geography, History, Economics and Social Science together at a discounted bundled price.
+
+[TIMINGS & LOCATION]
+Q: What are your class timings?
+A: Please contact us at 6207590802 to know the latest batch timings. We have morning and evening batches.
+
+Q: Where are you located?
+A: Please contact us directly for our address and directions. Call or WhatsApp 6207590802.
+
+Q: Do you offer online classes?
+A: Please contact us to find out about current online and offline class options.
+
+[ABOUT EDUSPARK]
+Q: What is Edutainment?
+A: Edutainment is our unique teaching approach that combines Education with Entertainment. We use games, storytelling, creative activities and rewards to make learning fun and effective.
+
+Q: How is EduSpark different from other tuition centres?
+A: EduSpark uses the Edutainment method — we believe students learn best when they enjoy the process. Small batches, expert teachers, and game-based learning set us apart.
+
+Q: How do I enroll?
+A: Simply call or WhatsApp us at 6207590802 or click the Send Enquiry button on our website and we will get back to you quickly.
+
+--- END KNOWLEDGE BASE ---
+
+When a parent or student shows interest in enrolling, always collect:
+- Full name
+- Phone number
+- Which class they are in (6-8, 9-10, or 11-12)
+- Which subjects they are interested in
+Then say: "Thank you! Our team will contact you within 24 hours."
+
+Keep all responses short, friendly and in simple English. Use encouraging words.`,
+          messages: messages
+        })
+      });
+      var data = await res.json();
+      var reply = data.content && data.content[0] ? data.content[0].text : 'Sorry, I could not understand that. Please try again!';
+      messages.push({ role: 'assistant', content: reply });
+      typing.textContent = reply;
+    } catch(err) {
+      typing.textContent = 'Hmm, something went wrong. Please call us directly! 📞';
+    }
+  };
+
+  function appendMsg(text, role) {
+    var box = document.getElementById('chatMessages');
+    var div = document.createElement('div');
+    div.textContent = text;
+    div.style.cssText = role === 'user'
+      ? 'background:var(--orange); border-radius:12px 12px 4px 12px; padding:0.75rem 1rem; color:#fff; font-size:0.88rem; max-width:85%; align-self:flex-end; line-height:1.5;'
+      : 'background:rgba(255,255,255,0.08); border-radius:12px 12px 12px 4px; padding:0.75rem 1rem; color:#ddd; font-size:0.88rem; max-width:85%; line-height:1.5;';
+    box.appendChild(div);
+    box.scrollTop = box.scrollHeight;
+    return div;
+  }
+})();
+</script>
+
+<script>
+(function() {
+  // ── Animated Canvas Background ──
+  var canvas = document.getElementById('liveCanvas');
+  var ctx    = canvas.getContext('2d');
+  var W, H, bubbles = [];
+
+  function resize() {
+    W = canvas.width  = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  // Create bubbles
+  for (var i = 0; i < 60; i++) {
+    bubbles.push({
+      x: Math.random() * 1200,
+      y: Math.random() * 900,
+      r: Math.random() * 18 + 4,
+      dx: (Math.random() - 0.5) * 0.6,
+      dy: (Math.random() - 0.5) * 0.6,
+      color: ['rgba(255,217,61,', 'rgba(255,107,53,', 'rgba(30,203,225,', 'rgba(6,214,160,', 'rgba(123,47,190,'][Math.floor(Math.random()*5)],
+      alpha: Math.random() * 0.15 + 0.04
+    });
+  }
+
+  // Connecting lines nodes
+  var nodes = [];
+  for (var j = 0; j < 25; j++) {
+    nodes.push({
+      x: Math.random() * 1200,
+      y: Math.random() * 900,
+      dx: (Math.random() - 0.5) * 0.4,
+      dy: (Math.random() - 0.5) * 0.4
+    });
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+
+    // Draw gradient mesh background tint
+    var grd = ctx.createRadialGradient(W*0.3, H*0.2, 0, W*0.3, H*0.2, W*0.7);
+    grd.addColorStop(0, 'rgba(255,217,61,0.04)');
+    grd.addColorStop(1, 'rgba(30,203,225,0.02)');
+    ctx.fillStyle = grd;
+    ctx.fillRect(0, 0, W, H);
+
+    // Move & draw bubbles
+    bubbles.forEach(function(b) {
+      b.x += b.dx; b.y += b.dy;
+      if (b.x < -b.r) b.x = W + b.r;
+      if (b.x > W + b.r) b.x = -b.r;
+      if (b.y < -b.r) b.y = H + b.r;
+      if (b.y > H + b.r) b.y = -b.r;
+      ctx.beginPath();
+      ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+      ctx.fillStyle = b.color + b.alpha + ')';
+      ctx.fill();
+      // ring
+      ctx.beginPath();
+      ctx.arc(b.x, b.y, b.r + 3, 0, Math.PI * 2);
+      ctx.strokeStyle = b.color + (b.alpha * 0.4) + ')';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    });
+
+    // Move & draw nodes + connecting lines
+    nodes.forEach(function(n) {
+      n.x += n.dx; n.y += n.dy;
+      if (n.x < 0 || n.x > W) n.dx *= -1;
+      if (n.y < 0 || n.y > H) n.dy *= -1;
+    });
+    for (var a = 0; a < nodes.length; a++) {
+      for (var b2 = a + 1; b2 < nodes.length; b2++) {
+        var dist = Math.hypot(nodes[a].x - nodes[b2].x, nodes[a].y - nodes[b2].y);
+        if (dist < 180) {
+          ctx.beginPath();
+          ctx.moveTo(nodes[a].x, nodes[a].y);
+          ctx.lineTo(nodes[b2].x, nodes[b2].y);
+          ctx.strokeStyle = 'rgba(255,217,61,' + (0.06 * (1 - dist/180)) + ')';
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        }
+      }
+      ctx.beginPath();
+      ctx.arc(nodes[a].x, nodes[a].y, 2, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255,217,61,0.2)';
+      ctx.fill();
+    }
+
+    requestAnimationFrame(draw);
+  }
+  draw();
+
+})();
+</script>
+
+<script>
+// ── Plan card cursor glow effect ──
+document.querySelectorAll('.plan-card').forEach(function(card) {
+  var glow = card.querySelector('.card-glow');
+  card.addEventListener('mousemove', function(e) {
+    var rect = card.getBoundingClientRect();
+    var x = e.clientX - rect.left;
+    var y = e.clientY - rect.top;
+    if (glow) { glow.style.left = x + 'px'; glow.style.top = y + 'px'; }
+    card.classList.add('card-lit');
+  });
+  card.addEventListener('mouseleave', function() { card.classList.remove('card-lit'); });
+});
+
+// ── Mobile nav ──
+function toggleMobileNav() {
+  var nav  = document.getElementById('mobileNav');
+  var ham  = document.getElementById('hamburger');
+  nav.classList.toggle('open');
+  ham.classList.toggle('open');
+  document.body.style.overflow = nav.classList.contains('open') ? 'hidden' : '';
+}
+function scrollTo(id) {
+  document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+  toggleMobileNav();
+}
+</script>
+</body>
+</html>
